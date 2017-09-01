@@ -1,0 +1,26 @@
+HKCR
+{
+	InfoReader.1 = s 'InfoReader Class'
+	{
+		CLSID = s '{0FF5960D-ED89-4B06-A8AC-E6D4DC4531DD}'
+	}
+	InfoReader = s 'InfoReader Class'
+	{
+		CurVer = s 'InfoReader.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {0FF5960D-ED89-4B06-A8AC-E6D4DC4531DD} = s 'InfoReader Class'
+		{
+			ProgID = s 'InfoReader.1'
+			VersionIndependentProgID = s 'InfoReader'
+			ForceRemove Programmable
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Both'
+			}
+			TypeLib = s '{B27EB4FF-EAF5-4337-8D9D-B0058DDD0ED4}'
+			Version = s '1.0'
+		}
+	}
+}

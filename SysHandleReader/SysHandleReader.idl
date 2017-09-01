@@ -1,0 +1,59 @@
+// SysHandleReader.idl : SysHandleReader的 IDL 源
+//
+
+// 此文件将由 MIDL 工具处理以
+// 产生类型库(SysHandleReader.tlb)和封送处理代码。
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+[
+	object,
+	uuid(a817e7a2-43fa-11d0-9e44-00aa00b6770a),
+	dual,	
+	pointer_default(unique)
+]
+interface IComponentRegistrar : IDispatch
+{
+	[id(1)]	HRESULT Attach([in] BSTR bstrPath);
+	[id(2)]	HRESULT RegisterAll();
+	[id(3)]	HRESULT UnregisterAll();
+	[id(4)]	HRESULT GetComponents([out] SAFEARRAY(BSTR)* pbstrCLSIDs, [out] SAFEARRAY(BSTR)* pbstrDescriptions);
+	[id(5)]	HRESULT RegisterComponent([in] BSTR bstrCLSID);
+	[id(6)] HRESULT UnregisterComponent([in] BSTR bstrCLSID);
+};
+
+[
+	object,
+	uuid(8090B0C1-B1C7-415A-AE22-EE86096F7FCF),
+	dual,
+	nonextensible,
+	pointer_default(unique)
+]
+interface IReader : IDispatch{
+	[id(1)] HRESULT QueryProcessHandleInfo([in] ULONG processid, [in, out] LONG* ProcessHandleInfo);
+};
+[
+	uuid(711D5518-E933-455E-9582-A10E8053361B),
+	version(1.0),
+	custom(a817e7a1-43fa-11d0-9e44-00aa00b6770a,"{4A868972-DD25-4E93-BB5B-A2A05E865C3E}")
+]
+library SysHandleReaderLib
+{
+	importlib("stdole2.tlb");
+	[
+		uuid(4A868972-DD25-4E93-BB5B-A2A05E865C3E)		
+	]
+	coclass CompReg
+	{
+		[default] interface IComponentRegistrar;
+	};
+	[		
+		uuid(2603E393-B630-4CE5-8DDB-9C4DED5E1153)		
+	]
+	coclass Reader
+	{
+		[default] interface IReader;
+	};
+};
+

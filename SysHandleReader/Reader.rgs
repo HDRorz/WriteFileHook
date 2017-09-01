@@ -1,0 +1,26 @@
+HKCR
+{
+	TheReader.1 = s 'Reader Class'
+	{
+		CLSID = s '{2603E393-B630-4CE5-8DDB-9C4DED5E1153}'
+	}
+	TheReader = s 'Reader Class'
+	{
+		CurVer = s 'TheReader.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {2603E393-B630-4CE5-8DDB-9C4DED5E1153} = s 'Reader Class'
+		{
+			ProgID = s 'TheReader.1'
+			VersionIndependentProgID = s 'TheReader'
+			ForceRemove Programmable
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Both'
+			}
+			TypeLib = s '{711D5518-E933-455E-9582-A10E8053361B}'
+			Version = s '1.0'
+		}
+	}
+}
