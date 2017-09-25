@@ -7,17 +7,32 @@ using System.Text;
 using Nektra.Deviare2;
 using static WriteFileHooker.WinApi;
 using static WriteFileHooker.WinType;
-using ATLSysHandleReaderLib;
+using SysHandleReaderLib;
 using WinApiReader;
+using static WriteFileHooker.WinEnum;
 
 namespace WriteFileHooker
 {
+	//
+	//BOOL WINAPI WriteFile(
+	//  _In_ HANDLE       hFile,
+	//  _In_ LPCVOID      lpBuffer,
+	//  _In_ DWORD        nNumberOfBytesToWrite,
+	//  _Out_opt_ LPDWORD      lpNumberOfBytesWritten,
+	//  _Inout_opt_ LPOVERLAPPED lpOverlapped
+	//);
+	//
+
+
 	public class WriteFileHooker
 	{
 		private NktSpyMgr _spyMgr;
 		private NktProcess _process;
 
 		private IntPtr processHandle;
+
+		//指针大小
+		private int PtrSize = IntPtr.Size;
 
 		public WriteFileHooker(string proccessName)
 		{
@@ -61,6 +76,12 @@ namespace WriteFileHooker
 			return false;
 		}
 
+		/// <summary>
+		/// WriteFile调用事件处理函数
+		/// </summary>
+		/// <param name="hook"></param>
+		/// <param name="process"></param>
+		/// <param name="hookCallInfo"></param>
 		private void OnWriteFileCalled(NktHook hook, NktProcess process, NktHookCallInfo hookCallInfo)
 		{
 			string strDocument = "Document: ";
@@ -78,7 +99,7 @@ namespace WriteFileHooker
 
 			INktParam nNumberOfBytesToWrite = paramsEnum.Next();
 
-			#region 毛用没有
+			#region 看着官方示例写的 毛用没有
 			if (hFile.PointerVal != IntPtr.Zero)
 			{
 				INktParamsEnum hFileEnumStruct = hFile.Evaluate().Fields();
@@ -100,8 +121,6 @@ namespace WriteFileHooker
 
 			var h_file = QueryFileHandle(hFile.Address);
 
-			//ReadFileInfo(hFile.Address);
-
 			ReadBuffer(lpBuffer.Address, nNumberOfBytesToWrite.Address);
 		}
 
@@ -121,39 +140,39 @@ namespace WriteFileHooker
 		{
 			try
 			{
-				byte[] _hfile = new byte[4];
+				byte[] _hfile = new byte[PtrSize];
 
 				int readedbtyes = 0;
 
 				bool result = false;
 
-				result = WinApi.ReadProcessMemory(processHandle.ToInt32(), p_hfile.ToInt32(), _hfile, 4, ref readedbtyes);
+				result = WinApi.ReadProcessMemory(processHandle.ToInt32(), p_hfile.ToInt32(), _hfile, PtrSize, ref readedbtyes);
 
 				int idx_file = WinApi.ToInt32(_hfile);
 
-				#region dllimport
+				#region dllimport 各种outofmemory stackoverflow 还有 无法封送处理“parameter #2”: 内部限制: 结构太复杂或太大。
 				//SYSTEM_HANDLE_INFORMATION handleInfos = new SYSTEM_HANDLE_INFORMATION();
 				//uint size = Convert.ToUInt32(Marshal.SizeOf(handleInfos));
 				//uint len = 0;
-				//int result = WinApi.ZwQuerySystemInformation(WinEnum.SYSTEMHANDLEINFORMATION, ref handleInfos, size, ref len);
+				//int success = WinApi.ZwQuerySystemInformation(WinEnum.SYSTEMHANDLEINFORMATION, ref handleInfos, size, ref len);
 				//List<SYSTEM_HANDLE> handles = handleInfos.SystemHandles.Where(e => e.dwProcessId == _process.Id).ToList();
 				#endregion
 
-				#region com
+				#region com 未知原因，就是用不了
 				//SYSTEM_HANDLE_INFORMATION handleInfos2 = new SYSTEM_HANDLE_INFORMATION();
-				//var reader = new InfoReader();
-				//uint pHandleInfos2 = 0;
-				//reader.QueryProcessHandleInfo((uint)_process.Id, ref pHandleInfos2);
+				//var ComReader = new Reader();
+				//int pHandleInfos2 = 0;
+				//ComReader.QueryProcessHandleInfo((uint)_process.Id, ref pHandleInfos2);
 				//IntPtr p2 = new IntPtr(pHandleInfos2);
 
 				//Marshal.PtrToStructure(p2, handleInfos2);
 				#endregion
 
 				#region cli
-				var reader = new WinApiReader.WinApiReader();
+				var CliReader = new WinApiReader.WinApiReader();
 				var handleInfo = new SystemHandleInfo();
 
-				var ret = reader.QueryProcessHandleInfo(_process.Id, out handleInfo);
+				var ret = CliReader.QueryProcessHandleInfo(_process.Id, out handleInfo);
 				#endregion
 
 				//foreach (var handle_type in handleInfo.SystemHandles.Select(e => e.ObjectType).Distinct())
@@ -162,6 +181,7 @@ namespace WriteFileHooker
 				//	ReadFileInfo(new IntPtr(handle.Value));
 				//}
 
+				//ObjectType28 是file object
 				var hfile = handleInfo.SystemHandles.Where(e => e.ObjectType == 28).ToList()[idx_file];
 
 				ReadFileInfo(new IntPtr(hfile.Value));
@@ -202,7 +222,7 @@ namespace WriteFileHooker
 			#region GetFileInformationByHandleEx
 			var fileinfo2 = new FILE_FULL_DIR_INFO();
 
-			int fileInfo2Type = 0xe;
+			int fileInfo2Type = (int)FileInformationClass.FileFullDirectoryInfo;//0xe;
 
 			//本来想用开辟非托管内存的操作，传指针到winapi，后来发现那块内存有数据后用
 			//PtrToStructure转结构体报错，也许是操作问题，还不如直接传结构体
@@ -216,7 +236,7 @@ namespace WriteFileHooker
 			var fileinfo3 = new FILE_NAME_INFO();
 			//fileinfo3.FileName = "";
 
-			int fileInfo3Type = 0x2;
+			int fileInfo3Type = (int)FileInformationClass.FileNameInfo;//0x2;
 			int size3 = Marshal.SizeOf(fileinfo3) + 1000*2;
 			IntPtr p_fileInfo3 = Marshal.AllocHGlobal(size3);
 			Marshal.StructureToPtr(fileinfo3, p_fileInfo3, false);
@@ -266,7 +286,7 @@ namespace WriteFileHooker
 			var fileinfo5 = new FILE_NAME_INFO();
 			//fileinfo5.FileName = "";
 
-			int fileInfo5Type = 9;
+			int fileInfo5Type = (int)FileInformationClass.FileFullDirectoryInfo;//9;
 			int size5 = Marshal.SizeOf(fileinfo5) + 1000*2;
 			IntPtr p_fileInfo5 = Marshal.AllocHGlobal(size5);
 			Marshal.StructureToPtr(fileinfo5, p_fileInfo5, false);
@@ -294,9 +314,9 @@ namespace WriteFileHooker
 
 			int size = WinApi.ToInt32(_size);
 
-			byte[] _bufferpoint = new byte[4];
+			byte[] _bufferpoint = new byte[PtrSize];
 
-			result = WinApi.ReadProcessMemory(processHandle.ToInt32(), p_buffer.ToInt32(), _bufferpoint, 4, ref readedbtyes);
+			result = WinApi.ReadProcessMemory(processHandle.ToInt32(), p_buffer.ToInt32(), _bufferpoint, PtrSize, ref readedbtyes);
 
 			int bufferpoint = WinApi.ToInt32(_bufferpoint);
 

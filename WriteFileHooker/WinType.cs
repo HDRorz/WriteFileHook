@@ -69,7 +69,7 @@ namespace WriteFileHooker
 		public struct SYSTEM_HANDLE_INFORMATION
 		{
 			public ulong Count;
-			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 2000)]
+			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 20000)]
 			public SYSTEM_HANDLE[] SystemHandles;
 		}
 

@@ -101,15 +101,6 @@
     <Content Include="Lib\Nektra.Deviare2.dll" />
   </ItemGroup>
   <ItemGroup>
-    <COMReference Include="ATLSysHandleReaderLib">
-      <Guid>{B27EB4FF-EAF5-4337-8D9D-B0058DDD0ED4}</Guid>
-      <VersionMajor>1</VersionMajor>
-      <VersionMinor>0</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>tlbimp</WrapperTool>
-      <Isolated>False</Isolated>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </COMReference>
     <COMReference Include="Deviare2">
       <Guid>{6E5EC37D-CF01-49B1-96C7-5E8ECF21A14C}</Guid>
       <VersionMajor>2</VersionMajor>
@@ -125,6 +116,15 @@
       <VersionMinor>0</VersionMinor>
       <Lcid>0</Lcid>
       <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="SysHandleReaderLib">
+      <Guid>{711D5518-E933-455E-9582-A10E8053361B}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
       <Isolated>False</Isolated>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </COMReference>
